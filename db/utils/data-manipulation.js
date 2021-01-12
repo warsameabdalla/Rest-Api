@@ -6,15 +6,17 @@ const {
   userData,
 } = require("../data/index.js");
 
-exports.formatDate = (timestamp) => {
+function formatDate(timestamp) {
   const jsDate = new Date(timestamp);
   return jsDate;
-};
+}
 
-exports.formattedUsersData = (userData) => {
-  for (let y of userData) {
-    let formatted = formatDate(y.created_at);
-    y.created_at = formatted;
-    return userData;
+function formattedUsersData(userData) {
+  for (let i = 0; i < userData.length; i++) {
+    let formatted = formatDate(userData[i].created_at);
+    userData[i].created_at = formatted;
   }
-};
+  return userData;
+}
+
+module.exports = { formatDate, formattedUsersData };
