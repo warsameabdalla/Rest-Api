@@ -5,8 +5,8 @@ const {
   userData,
 } = require("../data/index.js");
 const {
-  formattedUsersData,
   formatDate,
+  formattedArticleData,
 } = require("../utils/data-manipulation");
 
 exports.seed = function (knex) {
@@ -15,19 +15,21 @@ exports.seed = function (knex) {
     .rollback()
     .then(() => knex.migrate.latest())
     .then(() => {
-      // console.log(topicData);
       return knex("topics").insert(topicData).returning("*");
     })
     .then((insertedTopics) => {
-      // console.log(insertedTopics);
       return knex("users").insert(userData).returning("*");
     })
     .then((insertedUsers) => {
-      let formattedData = formattedUsersData(articleData);
-      console.log(formattedData);
+      let formattedData = formattedArticleData(articleData);
       return knex("articles").insert(formattedData).returning("*");
     })
     .then((insertedArticle) => {
       console.log(insertedArticle);
+      let formattedCommentData = formattedArticleData(commentData);
+      return knex("comments").insert(formattedCommentData).returning("*");
+    })
+    .then((a) => {
+      console.log(a);
     });
 };

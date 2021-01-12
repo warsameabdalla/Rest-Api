@@ -11,12 +11,37 @@ function formatDate(timestamp) {
   return jsDate;
 }
 
-function formattedUsersData(userData) {
+function formattedArticleData(userData) {
   for (let i = 0; i < userData.length; i++) {
     let formatted = formatDate(userData[i].created_at);
     userData[i].created_at = formatted;
   }
   return userData;
 }
+function createReferenceObject(arrayOfArticleData) {
+  for (let i = 0; i < arrayOfArticleData.length; i++) {
+    var referenceObject = {};
+    referenceObject[arrayOfArticleData[i].title] =
+      arrayOfArticleData[i].article_id;
+  }
+  console.log(referenceObject);
+  return referenceObject;
+}
+function formattedcommentData(commentsData, referenceObject) {
+  for (let i = 0; i < commentsData.length; i++) {
+    let formatted = formatDate(commentsData[i].created_at);
+    commentsData[i].created_at = formatted;
+    commentsData[i].article_id = referenceObject[commentsData[i].belongs_to];
+    commentsData[i].username = commentsData[i].created_by;
+    delete commentsData[i].created_by;
+    delete commentsData[i].belongs_to;
+  }
+  return commentsData;
+}
 
-module.exports = { formatDate, formattedUsersData };
+module.exports = {
+  formatDate,
+  formattedArticleData,
+  createReferenceObject,
+  formattedcommentData,
+};
