@@ -4,7 +4,7 @@ const {
   articleData,
   commentData,
   userData,
-} = require("../data/index.js");
+} = require('../data/index.js');
 
 function formatDate(timestamp) {
   const jsDate = new Date(timestamp);
@@ -19,8 +19,8 @@ function formattedArticleData(userData) {
   return userData;
 }
 function createReferenceObject(arrayOfArticleData) {
+  var referenceObject = {};
   for (let i = 0; i < arrayOfArticleData.length; i++) {
-    var referenceObject = {};
     referenceObject[arrayOfArticleData[i].title] =
       arrayOfArticleData[i].article_id;
   }
@@ -32,7 +32,7 @@ function formattedcommentData(commentsData, referenceObject) {
     let formatted = formatDate(commentsData[i].created_at);
     commentsData[i].created_at = formatted;
     commentsData[i].article_id = referenceObject[commentsData[i].belongs_to];
-    commentsData[i].username = commentsData[i].created_by;
+    commentsData[i].author = commentsData[i].created_by;
     delete commentsData[i].created_by;
     delete commentsData[i].belongs_to;
   }

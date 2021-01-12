@@ -3,11 +3,13 @@ const {
   articleData,
   commentData,
   userData,
-} = require("../data/index.js");
+} = require('../data/index.js');
 const {
   formatDate,
   formattedArticleData,
-} = require("../utils/data-manipulation");
+  createReferenceObject,
+  formattedcommentData,
+} = require('../utils/data-manipulation');
 
 exports.seed = function (knex) {
   // add seeding functionality here
@@ -15,21 +17,25 @@ exports.seed = function (knex) {
     .rollback()
     .then(() => knex.migrate.latest())
     .then(() => {
-      return knex("topics").insert(topicData).returning("*");
+      return knex('topics').insert(topicData).returning('*');
     })
     .then((insertedTopics) => {
-      return knex("users").insert(userData).returning("*");
+      return knex('users').insert(userData).returning('*');
     })
     .then((insertedUsers) => {
       let formattedData = formattedArticleData(articleData);
-      return knex("articles").insert(formattedData).returning("*");
+      return knex('articles').insert(formattedData).returning('*');
     })
     .then((insertedArticle) => {
-      console.log(insertedArticle);
-      let formattedCommentData = formattedArticleData(commentData);
-      return knex("comments").insert(formattedCommentData).returning("*");
+      // console.log(insertedArticle);
+      let referenceObject = createReferenceObject(insertedArticle);
+      let formattedComments = formattedcommentData(
+        commentData,
+        referenceObject
+      );
+      return knex('comments').insert(formattedComments).returning('*');
     })
-    .then((a) => {
-      console.log(a);
+    .then((insertedComments) => {
+      console.log(insertedComments);
     });
 };
