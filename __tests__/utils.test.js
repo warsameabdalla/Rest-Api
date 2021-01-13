@@ -45,7 +45,6 @@ describe('createReferenceObject', () => {
     ];
     // const jsDate = new Date(1471522072389);
     let obj = createReferenceObject(userData);
-    console.log(obj);
     expect(obj).toEqual({
       'The People Tracking Every Touch, Pass And Tackle in the World Cup': 18,
     });

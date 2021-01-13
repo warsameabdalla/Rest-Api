@@ -34,8 +34,5 @@ exports.seed = function (knex) {
         referenceObject
       );
       return knex('comments').insert(formattedComments).returning('*');
-    })
-    .then((insertedComments) => {
-      console.log(insertedComments);
     });
 };

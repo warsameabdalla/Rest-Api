@@ -24,7 +24,6 @@ function createReferenceObject(arrayOfArticleData) {
     referenceObject[arrayOfArticleData[i].title] =
       arrayOfArticleData[i].article_id;
   }
-  console.log(referenceObject);
   return referenceObject;
 }
 function formattedcommentData(commentsData, referenceObject) {
