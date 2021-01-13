@@ -1,8 +1,7 @@
 const express = require('express');
-const apiRouter = express().Router;
-console.log(apiRouter);
+const apiRouter = express.Router();
 const topicsRouter = require('./topics-router');
 
-app.use('/topics', topicsRouter);
+apiRouter.use('/topics', topicsRouter);
 
 module.exports = apiRouter;
