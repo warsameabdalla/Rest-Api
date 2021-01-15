@@ -3,13 +3,13 @@ const {
   articleData,
   commentData,
   userData,
-} = require('../data/index.js');
+} = require("../data/index.js");
 const {
   formatDate,
   formattedArticleData,
   createReferenceObject,
   formattedcommentData,
-} = require('../utils/data-manipulation');
+} = require("../utils/data-manipulation");
 
 exports.seed = function (knex) {
   // add seeding functionality here
@@ -17,14 +17,14 @@ exports.seed = function (knex) {
     .rollback()
     .then(() => knex.migrate.latest())
     .then(() => {
-      return knex('topics').insert(topicData).returning('*');
+      return knex("topics").insert(topicData).returning("*");
     })
     .then((insertedTopics) => {
-      return knex('users').insert(userData).returning('*');
+      return knex("users").insert(userData).returning("*");
     })
     .then((insertedUsers) => {
       let formattedData = formattedArticleData(articleData);
-      return knex('articles').insert(formattedData).returning('*');
+      return knex("articles").insert(formattedData).returning("*");
     })
     .then((insertedArticle) => {
       // console.log(insertedArticle);
@@ -33,6 +33,6 @@ exports.seed = function (knex) {
         commentData,
         referenceObject
       );
-      return knex('comments').insert(formattedComments).returning('*');
+      return knex("comments").insert(formattedComments).returning("*");
     });
 };

@@ -9,7 +9,8 @@
     "test": "jest --watch",
     "migrate-make": "knex migrate:make",
     "migrate-latest": "knex migrate:latest",
-    "migrate-rollback": "knex migrate:rollback"
+    "migrate-rollback": "knex migrate:rollback",
+    "seed-test": "NODE_ENV=test npm run seed"
   },
   "repository": {
     "type": "git",
@@ -21,6 +22,9 @@
   "bugs": {
     "url": "https://github.com/northcoders/be-nc-news/issues"
   },
+  "jest":{
+    "setupFilesAfterEnv": ["jest-sorted"]
+  },
   "homepage": "https://github.com/northcoders/be-nc-news#readme",
   "dependencies": {
     "express": "^4.17.1",
@@ -29,6 +33,7 @@
   },
   "devDependencies": {
     "jest": "^26.6.3",
+    "jest-sorted": "^1.0.8",
     "supertest": "^6.0.1"
   }
 }

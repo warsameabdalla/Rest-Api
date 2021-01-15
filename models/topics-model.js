@@ -1,10 +1,5 @@
-const connection = require('../db/connection');
+const connection = require("../db/connection");
 
-exports.fetchAllTopics = () => {
-  return connection
-    .select('*')
-    .from('topics')
-    .then(([topicsData]) => {
-      return topicsData;
-    });
+exports.fetchAllTopics = (username) => {
+  return connection.select("*").from("topics");
 };

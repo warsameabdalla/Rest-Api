@@ -4,7 +4,7 @@ const {
   articleData,
   commentData,
   userData,
-} = require('../data/index.js');
+} = require("../data/index.js");
 
 function formatDate(timestamp) {
   const jsDate = new Date(timestamp);
@@ -12,11 +12,17 @@ function formatDate(timestamp) {
 }
 
 function formattedArticleData(userData) {
-  for (let i = 0; i < userData.length; i++) {
-    let formatted = formatDate(userData[i].created_at);
-    userData[i].created_at = formatted;
-  }
-  return userData;
+  // for (let i = 0; i < userData.length; i++) {
+  //   let formatted = formatDate(userData[i].created_at);
+  //   userData[i].created_at = formatted;
+  // }
+  let Data = userData.map((user) => {
+    let User = { ...user };
+    let formatted = formatDate(User.created_at);
+    User.created_at = formatted;
+    return User;
+  });
+  return Data;
 }
 function createReferenceObject(arrayOfArticleData) {
   var referenceObject = {};
@@ -27,15 +33,18 @@ function createReferenceObject(arrayOfArticleData) {
   return referenceObject;
 }
 function formattedcommentData(commentsData, referenceObject) {
-  for (let i = 0; i < commentsData.length; i++) {
-    let formatted = formatDate(commentsData[i].created_at);
-    commentsData[i].created_at = formatted;
-    commentsData[i].article_id = referenceObject[commentsData[i].belongs_to];
-    commentsData[i].author = commentsData[i].created_by;
-    delete commentsData[i].created_by;
-    delete commentsData[i].belongs_to;
+  let cd = commentsData.map((commentData) => {
+    return { ...commentData };
+  });
+  for (let i = 0; i < cd.length; i++) {
+    let formatted = formatDate(cd[i].created_at);
+    cd[i].created_at = formatted;
+    cd[i].article_id = referenceObject[cd[i].belongs_to];
+    cd[i].author = cd[i].created_by;
+    delete cd[i].created_by;
+    delete cd[i].belongs_to;
   }
-  return commentsData;
+  return cd;
 }
 
 module.exports = {
