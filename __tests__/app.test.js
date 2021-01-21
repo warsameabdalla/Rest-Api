@@ -2,170 +2,309 @@ process.env.NODE_ENV = "test";
 const connection = require("../db/connection");
 const request = require("supertest");
 const app = require("../app");
+const articles = require("../db/data/test-data/articles");
 
 beforeEach(() => connection.seed.run());
 afterAll(() => connection.destroy());
 
 describe("/api", () => {
   describe("/topics", () => {
-    it("responds with an array of topics", () => {
+    test("GET /api/topics responds with an array of topics", () => {
       return request(app)
         .get("/api/topics")
         .expect(200)
         .then((response) => {
-          expect(response.body).toEqual([
+          expect(response.body.topics).toEqual([
             { slug: "mitch", description: "The man, the Mitch, the legend" },
             { slug: "cats", description: "Not dogs" },
             { slug: "paper", description: "what books are made of" },
           ]);
         });
     });
+    test("GET /api/notaroute responds with 404 and route not ffound message", () => {
+      return request(app)
+        .get("/api/notaroute")
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe("route not found");
+        });
+    });
   });
   describe("/users", () => {
-    it("responds with the correct object depending on the username ", () => {
+    it("GET /api/users/:username responds with the correct object depending on the username ", () => {
       return request(app)
         .get("/api/users/icellusedkars")
         .expect(200)
         .then((response) => {
           expect(response.body).toEqual({
-            username: "icellusedkars",
-            name: "sam",
-            avatar_url:
-              "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4",
+            user: {
+              username: "icellusedkars",
+              name: "sam",
+              avatar_url:
+                "https://avatars2.githubusercontent.com/u/24604688?s=460&v=4",
+            },
           });
+        });
+    });
+    test("GET /api/users/:username responds with 404 if the route is incorrect", () => {
+      return request(app)
+        .get("/api/users/aa")
+        .expect(404)
+        .then((response) => {
+          expect(response.body.msg).toBe("route not found");
         });
     });
   });
   describe("/articles", () => {
-    it("responds with the correct object depending on the article_id ", () => {
-      return request(app)
-        .get("/api/articles/9")
-        .expect(200)
-        .then((response) => {
-          let time = new Date(533132514171);
+    describe("/:article_id", () => {
+      describe("/comments", () => {
+        it("POST request responds with posted comment", () => {
+          return request(app)
+            .post("/api/articles/9/comments")
+            .send({
+              author: "butter_bridge",
+              body: "absolutely great!",
+              article_id: 9,
+            })
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.Article[0].author).toBe("butter_bridge");
+              expect(body.Article[0].body).toBe("absolutely great!");
+            });
+        });
+        it(" POST request responds with 400 status code when input in one of the required fields is invalid", () => {
+          return request(app)
+            .post("/api/articles/9/comments")
+            .send({
+              author: "butter_bridge",
+              body: "absolutely great!",
+              article_id: "hhfh",
+            })
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).toBe("bad request");
+            });
+        });
+        it(" POST request responds with 400 if required field is left empty", () => {
+          return request(app)
+            .post("/api/articles/9/comments")
+            .send({
+              author: "butter_bridge",
+              article_id: 9,
+            })
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).toBe("bad request");
+            });
+        });
+        it("POST request responds with 400 if column is incorrect", () => {
+          return request(app)
+            .post("/api/articles/9/comments")
+            .send({
+              body: "absolutely great!",
+              author: "butter_bridge",
+              article_i: 9,
+            })
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).toBe("bad request");
+            });
+        });
+        it("POST request responds with 400 if article does not exist", () => {
+          return request(app)
+            .post("/api/articles/9/comments")
+            .send({
+              body: "absolutely great!",
+              author: "butter_bridge",
+              article_id: 10000,
+            })
+            .expect(400)
+            .then(({ body }) => {
+              expect(body.msg).toBe("bad request");
+            });
+        });
+        it("GET request responds with an array of sorted comments which defaults to descending order for the given article", () => {
+          return request(app)
+            .get("/api/articles/9/comments")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body).toEqual({
+                comments: [
+                  {
+                    comment_id: 1,
+                    body:
+                      "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+                    article_id: 9,
+                    author: "butter_bridge",
+                    votes: 16,
+                    created_at: "2017-11-22T12:36:03.389Z",
+                  },
+                  {
+                    comment_id: 17,
+                    body: "The owls are not what they seem.",
+                    article_id: 9,
+                    author: "icellusedkars",
+                    votes: 20,
+                    created_at: "2001-11-26T12:36:03.389Z",
+                  },
+                ],
+              });
+              expect(body).toBeSortedBy("created_at", {
+                descending: true,
+              });
+            });
+        });
+        it("GET request responds with an array of sorted comments depending on the column in the query for the given article", () => {
+          return request(app)
+            .get("/api/articles/9/comments?sort_by=votes")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body).toEqual({
+                comments: [
+                  {
+                    comment_id: 17,
+                    body: "The owls are not what they seem.",
+                    article_id: 9,
+                    author: "icellusedkars",
+                    votes: 20,
+                    created_at: "2001-11-26T12:36:03.389Z",
+                  },
+                  {
+                    comment_id: 1,
+                    body:
+                      "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+                    article_id: 9,
+                    author: "butter_bridge",
+                    votes: 16,
+                    created_at: "2017-11-22T12:36:03.389Z",
+                  },
+                ],
+              });
+              expect(body).toBeSortedBy("votes", {
+                descending: true,
+              });
+            });
+        });
+        it("GET request responds with an array of descending comments or ascending based on the query but defaults descending", () => {
+          return request(app)
+            .get("/api/articles/9/comments?order=asc")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body).toEqual({
+                comments: [
+                  {
+                    comment_id: 17,
+                    body: "The owls are not what they seem.",
+                    article_id: 9,
+                    author: "icellusedkars",
+                    votes: 20,
+                    created_at: "2001-11-26T12:36:03.389Z",
+                  },
+                  {
+                    comment_id: 1,
+                    body:
+                      "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+                    article_id: 9,
+                    author: "butter_bridge",
+                    votes: 16,
+                    created_at: "2017-11-22T12:36:03.389Z",
+                  },
+                ],
+              });
+              expect(body).toBeSortedBy("created_at");
+            });
+        });
+        test("GET request responds with 404 when endpoint is valid but but the route is incorrect", () => {
+          return request(app)
+            .get("/api/articles/1000008/comments")
+            .expect(404)
+            .then((response) => {
+              expect(response.body.msg).toBe("route not found");
+            });
+        });
+        test("GET request responds with 400 when endpoint is in invalid", () => {
+          return request(app)
+            .get("/api/articles/aasd/comments")
+            .expect(400)
+            .then((response) => {
+              expect(response.body.msg).toBe("bad request");
+            });
+        });
+      });
 
-          expect(response.body).toEqual({
-            article_id: 9,
-            title: "They're not exactly dogs, are they?",
-            topic: "mitch",
-            author: "butter_bridge",
-            body: "Well? Think about it.",
-            created_at: "1986-11-23T12:21:54.171Z",
-            votes: 0,
-            comment_count: "2",
+      it("GET request responds with the correct object depending on the article_id ", () => {
+        return request(app)
+          .get("/api/articles/9")
+          .expect(200)
+          .then((response) => {
+            expect(response.body).toEqual({
+              Article: {
+                article_id: 9,
+                title: "They're not exactly dogs, are they?",
+                topic: "mitch",
+                author: "butter_bridge",
+                body: "Well? Think about it.",
+                created_at: "1986-11-23T12:21:54.171Z",
+                votes: 0,
+                comment_count: "2",
+              },
+            });
           });
-        });
-    });
-    it("increments votes depending whats been patched ", () => {
-      return request(app)
-        .patch("/api/articles/9")
-        .send({ inc_votes: 5 })
-        .expect(200)
-        .then(({ body }) => {
-          expect(body.votes).toBe(5);
-        });
-    });
-    it(" responds with posted comment", () => {
-      return request(app)
-        .post("/api/articles/9/comments")
-        .send({
-          author: "butter_bridge",
-          body: "absolutely great!",
-          article_id: 9,
-        })
-        .expect(200)
-        .then(({ body }) => {
-          expect(body.author).toBe("butter_bridge");
-          expect(body.body).toBe("absolutely great!");
-        });
-    });
-    it("responds with an array of sorted comments for the given article", () => {
-      return request(app)
-        .get("/api/articles/9/comments")
-        .expect(200)
-        .then(({ body }) => {
-          expect(body).toEqual([
-            {
-              comment_id: 1,
-              body:
-                "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
-              article_id: 9,
-              author: "butter_bridge",
-              votes: 16,
-              created_at: "2017-11-22T12:36:03.389Z",
-            },
-            {
-              comment_id: 17,
-              body: "The owls are not what they seem.",
-              article_id: 9,
-              author: "icellusedkars",
-              votes: 20,
-              created_at: "2001-11-26T12:36:03.389Z",
-            },
-          ]);
-          expect(body).toBeSortedBy("created_at", {
-            descending: true,
+      });
+      test("GET request responds with 404 when the route is incorrect", () => {
+        return request(app)
+          .get("/api/articles/1000008")
+          .expect(404)
+          .then((response) => {
+            expect(response.body.msg).toBe("route not found");
           });
-        });
-    });
-    it("responds with an array of sorted comments depending on the column in the query for the given article", () => {
-      return request(app)
-        .get("/api/articles/9/comments?sort_by=votes")
-        .expect(200)
-        .then(({ body }) => {
-          console.log(body);
-          expect(body).toEqual([
-            {
-              comment_id: 17,
-              body: "The owls are not what they seem.",
-              article_id: 9,
-              author: "icellusedkars",
-              votes: 20,
-              created_at: "2001-11-26T12:36:03.389Z",
-            },
-            {
-              comment_id: 1,
-              body:
-                "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
-              article_id: 9,
-              author: "butter_bridge",
-              votes: 16,
-              created_at: "2017-11-22T12:36:03.389Z",
-            },
-          ]);
-          expect(body).toBeSortedBy("votes", {
-            descending: true,
+      });
+      test("GET request responds with 400 when endpoint is in invalid", () => {
+        return request(app)
+          .get("/api/articles/aasd")
+          .expect(400)
+          .then((response) => {
+            expect(response.body.msg).toBe("bad request");
           });
-        });
+      });
+      it("PATCH request increments votes depending whats been patched ", () => {
+        return request(app)
+          .patch("/api/articles/9")
+          .send({ inc_votes: 5 })
+          .expect(200)
+          .then(({ body }) => {
+            expect(body.Article.votes).toBe(5);
+          });
+      });
+      test("PATCH request responds with 404 when the route is incorrect", () => {
+        return request(app)
+          .patch("/api/articles/1000008")
+          .send({ inc_votes: 5 })
+          .expect(404)
+          .then((response) => {
+            expect(response.body.msg).toBe("route not found");
+          });
+      });
+      test("PATCH request responds with 400 when endpoint is in invalid", () => {
+        return request(app)
+          .patch("/api/articles/aasd")
+          .send({ inc_votes: 5 })
+          .expect(400)
+          .then((response) => {
+            expect(response.body.msg).toBe("bad request");
+          });
+      });
+      test("PATCH request responds with 400 when input is invalid", () => {
+        return request(app)
+          .patch("/api/articles/9")
+          .send({ inc_votes: "hdhd" })
+          .expect(400)
+          .then((response) => {
+            expect(response.body.msg).toBe("bad request");
+          });
+      });
     });
-    it("responds with an array of descending comments or ascending based on the query but defaults descending", () => {
-      return request(app)
-        .get("/api/articles/9/comments?order=asc")
-        .expect(200)
-        .then(({ body }) => {
-          expect(body).toEqual([
-            {
-              comment_id: 17,
-              body: "The owls are not what they seem.",
-              article_id: 9,
-              author: "icellusedkars",
-              votes: 20,
-              created_at: "2001-11-26T12:36:03.389Z",
-            },
-            {
-              comment_id: 1,
-              body:
-                "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
-              article_id: 9,
-              author: "butter_bridge",
-              votes: 16,
-              created_at: "2017-11-22T12:36:03.389Z",
-            },
-          ]);
-          expect(body).toBeSortedBy("created_at");
-        });
-    });
-    it("/api/articles responds with an array of articles with all the properties including comment count", () => {
+    it("GET request responds with an array of articles with all the properties including comment count", () => {
       return request(app)
         .get("/api/articles")
         .expect(200)
@@ -184,7 +323,7 @@ describe("/api", () => {
           expect(response.body[0].comment_count).toBe("13");
         });
     });
-    it("/api/articles responds with an array of sorted comments depending on the column in the query for the given article and defaults to date and descending comments or ascending based on the query but defaults descending", () => {
+    it("GET request  responds with an array of sorted comments depending on the column in the query for the given article and defaults to date and descending comments or ascending based on the query but defaults descending", () => {
       return request(app)
         .get("/api/articles?order=asc")
         .expect(200)
@@ -212,12 +351,11 @@ describe("/api", () => {
           expect(body).toBeSortedBy("created_at");
         });
     });
-    it("/api/articles responds with filtered array if queried with opic or author", () => {
+    it("GET request  responds with filtered array if queried with topic or author", () => {
       return request(app)
         .get("/api/articles?author=icellusedkars&topic=mitch")
         .expect(200)
         .then((response) => {
-          console.log(response.body);
           expect(response.body).toEqual([
             {
               article_id: 2,
@@ -287,17 +425,48 @@ describe("/api", () => {
     });
   });
   describe("/comments", () => {
-    it("increments votes depending whats been patched ", () => {
+    it("PATCH request increments votes depending whats been patched ", () => {
       return request(app)
         .patch("/api/comments/1")
         .send({ inc_votes: -5 })
         .expect(200)
         .then(({ body }) => {
-          expect(body.votes).toBe(11);
+          expect(body.comment.votes).toBe(11);
         });
     });
-    it("idelete comment of particular id then send 204 ", () => {
+    test("PATCH request responds with 404 when endpoint is valid but but the route is incorrect", () => {
+      return request(app)
+        .patch("/api/comments/1000008")
+        .send({ inc_votes: 5 })
+        .expect(404)
+        .then((response) => {
+          expect(response.body.msg).toBe("route not found");
+        });
+    });
+    test("PATCH request responds with 400 when endpoint is in invalid", () => {
+      return request(app)
+        .patch("/api/comments/aasd")
+        .send({ inc_votes: 5 })
+        .expect(400)
+        .then((response) => {
+          expect(response.body.msg).toBe("bad request");
+        });
+    });
+    test("PATCH request responds with 400 when input is invalid", () => {
+      return request(app)
+        .patch("/api/comments/1")
+        .send({ inc_votes: "hdhd" })
+        .expect(400)
+        .then((response) => {
+          expect(response.body.msg).toBe("bad request");
+        });
+    });
+
+    it("DELETE request deletes comment of particular id then send 204 ", () => {
       return request(app).delete("/api/comments/1").expect(204);
+    });
+    test("DELETE request responds with 404 when endpoint is valid but but the route is incorrect", () => {
+      return request(app).delete("/api/comments/1000008").expect(404);
     });
   });
 });

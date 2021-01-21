@@ -1,19 +1,24 @@
 const connection = require("../db/connection");
 
-exports.patchedComments = (inc_votes = 0, comment_id) => {
+exports.patchingComments = (inc_votes = 0, comment_id) => {
   return connection("comments")
     .increment("votes", inc_votes)
     .where("comment_id", "=", comment_id)
     .returning("*")
     .then((comment) => {
+      if (!comment[0]) {
+        return Promise.reject({ status: "404", msg: "route not found" });
+      }
       return comment;
     });
 };
-exports.deletedComments = (comment_id) => {
+exports.deletingComments = (comment_id) => {
   return connection("comments")
     .where("comment_id", "=", comment_id)
     .del()
-    .then((h) => {
-      return h;
+    .then((deletedComment) => {
+      if (!deletedComment) {
+        return Promise.reject({ status: "404", msg: "route not found" });
+      }
     });
 };

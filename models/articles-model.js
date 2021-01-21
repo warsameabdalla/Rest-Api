@@ -1,7 +1,6 @@
 const connection = require("../db/connection");
 const knexfile = require("../knexfile");
-console.log("hello");
-exports.fetchArticles = (articleID) => {
+exports.fetchArticleById = (articleID) => {
   return connection
     .select("articles.*")
     .count("comment_id AS comment_count")
@@ -9,20 +8,27 @@ exports.fetchArticles = (articleID) => {
     .leftJoin("comments", "articles.article_id", "=", "comments.article_id")
     .where("articles.article_id", "=", articleID)
     .groupBy("articles.article_id")
-    .then((article) => {
-      return article;
+    .then(([article]) => {
+      if (!article) {
+        return Promise.reject({ status: "404", msg: "route not found" });
+      } else {
+        return article;
+      }
     });
 };
-exports.fetchUpdatedArticles = (articleID, inc_votes) => {
+exports.patchingArticleById = (articleID, inc_votes) => {
   return connection("articles")
     .increment("votes", inc_votes)
     .where("article_id", "=", articleID)
     .returning("*")
     .then((article) => {
+      if (!article[0]) {
+        return Promise.reject({ status: "404", msg: "route not found" });
+      }
       return article;
     });
 };
-exports.postedArticles = (articleID, body) => {
+exports.postingCommentByArticleId = (articleID, body) => {
   return connection("comments")
     .insert(body)
     .returning("*")
@@ -30,7 +36,7 @@ exports.postedArticles = (articleID, body) => {
       return article;
     });
 };
-exports.fetchSelectedArticles = (
+exports.fetchCommentsByArticleId = (
   articleID,
   sort_by = "created_at",
   order = "desc"
@@ -40,7 +46,11 @@ exports.fetchSelectedArticles = (
     .where("article_id", "=", articleID)
     .orderBy(sort_by, order)
     .then((article) => {
-      return article;
+      if (!article[0]) {
+        return Promise.reject({ status: "404", msg: "route not found" });
+      } else {
+        return article;
+      }
     });
 };
 exports.fetchAllArticles = (
@@ -49,7 +59,6 @@ exports.fetchAllArticles = (
   author,
   topic
 ) => {
-  console.log(author);
   return connection
     .select("articles.*")
     .orderBy(sort_by, order)

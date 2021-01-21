@@ -1,42 +1,48 @@
 const {
-  fetchArticles,
-  fetchUpdatedArticles,
-  postedArticles,
-  fetchSelectedArticles,
+  fetchArticleById,
+  patchingArticleById,
+  postingCommentByArticleId,
+  fetchCommentsByArticleId,
   fetchAllArticles,
 } = require("../models/articles-model");
 
-exports.getArticles = (req, res, next) => {
+exports.getArticleById = (req, res, next) => {
   const { article_id } = req.params;
-  fetchArticles(article_id).then(([Article]) => {
-    res.send(Article);
-  });
+  fetchArticleById(article_id)
+    .then((Article) => {
+      res.send({ Article });
+    })
+    .catch(next);
 };
-exports.updatedArticles = (req, res, next) => {
+exports.patchArticleById = (req, res, next) => {
   const { article_id } = req.params;
   const { inc_votes } = req.body;
-  fetchUpdatedArticles(article_id, inc_votes).then(([Article]) => {
-    res.send(Article);
-  });
+  patchingArticleById(article_id, inc_votes)
+    .then(([Article]) => {
+      res.send({ Article });
+    })
+    .catch(next);
 };
-exports.postArticles = (req, res, next) => {
-  console.log("hello");
+exports.postCommentByArticleId = (req, res, next) => {
   const { article_id } = req.params;
   const body = req.body;
-  postedArticles(article_id, body).then(([Article]) => {
-    res.send(Article);
-  });
+  postingCommentByArticleId(article_id, body)
+    .then((Article) => {
+      res.send({ Article });
+    })
+    .catch(next);
 };
-exports.getSelectedArticles = (req, res, next) => {
+exports.getCommentsByArticleId = (req, res, next) => {
   const { article_id } = req.params;
   const { sort_by, order } = req.query;
-  fetchSelectedArticles(article_id, sort_by, order).then((object) => {
-    res.send(object);
-  });
+  fetchCommentsByArticleId(article_id, sort_by, order)
+    .then((comments) => {
+      res.send({ comments });
+    })
+    .catch(next);
 };
 exports.getAllArticles = (req, res, next) => {
   const { sort_by, order, author, topic } = req.query;
-  console.log(author);
   fetchAllArticles(sort_by, order, author, topic).then((object) => {
     res.send(object);
   });

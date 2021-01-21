@@ -4,13 +4,17 @@
   "description": "bc-nc-news",
   "main": "index.js",
   "scripts": {
+    "seed:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex seed:run",
+    "migrate-latest:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex migrate:latest",
+    "migrate-rollback:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex migrate:rollback",
     "setup-dbs": "psql -f ./db/setup.sql",
     "seed": "knex seed:run",
     "test": "jest --watch",
     "migrate-make": "knex migrate:make",
     "migrate-latest": "knex migrate:latest",
     "migrate-rollback": "knex migrate:rollback",
-    "seed-test": "NODE_ENV=test npm run seed"
+    "seed-test": "NODE_ENV=test npm run seed",
+    "start": "node listen.js"
   },
   "repository": {
     "type": "git",
@@ -22,8 +26,10 @@
   "bugs": {
     "url": "https://github.com/northcoders/be-nc-news/issues"
   },
-  "jest":{
-    "setupFilesAfterEnv": ["jest-sorted"]
+  "jest": {
+    "setupFilesAfterEnv": [
+      "jest-sorted"
+    ]
   },
   "homepage": "https://github.com/northcoders/be-nc-news#readme",
   "dependencies": {
