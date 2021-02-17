@@ -27,8 +27,8 @@ exports.postCommentByArticleId = (req, res, next) => {
   const { article_id } = req.params;
   const body = req.body;
   postingCommentByArticleId(article_id, body)
-    .then((Article) => {
-      res.send({ Article });
+    .then((comment) => {
+      res.send({ comment });
     })
     .catch(next);
 };

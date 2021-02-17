@@ -32,8 +32,8 @@ exports.postingCommentByArticleId = (articleID, body) => {
   return connection("comments")
     .insert(body)
     .returning("*")
-    .then((article) => {
-      return article;
+    .then((comment) => {
+      return comment;
     });
 };
 exports.fetchCommentsByArticleId = (

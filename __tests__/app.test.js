@@ -68,8 +68,8 @@ describe("/api", () => {
             })
             .expect(200)
             .then(({ body }) => {
-              expect(body.Article[0].author).toBe("butter_bridge");
-              expect(body.Article[0].body).toBe("absolutely great!");
+              expect(body.comment[0].author).toBe("butter_bridge");
+              expect(body.comment[0].body).toBe("absolutely great!");
             });
         });
         it(" POST request responds with 400 status code when input in one of the required fields is invalid", () => {
