@@ -9,7 +9,7 @@ afterAll(() => connection.destroy());
 
 describe("/api", () => {
   describe("/topics", () => {
-    test("GET /api/topics responds with an array of topics", () => {
+    test.only("GET /api/topics responds with an array of topics", () => {
       return request(app)
         .get("/api/topics")
         .expect(200)
